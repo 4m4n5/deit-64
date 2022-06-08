@@ -10,6 +10,21 @@ from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.data import create_transform
 
 
+## Tensor-transforms
+# Gaussin noise transforms
+class RandGaussianNoise(object):
+    def __init__(self, max_std=2.0):
+        self.max_std = max_std
+
+    def __call__(self, tensor):
+        scale = torch.randint(0, 10, (1,)) / 10  # num between [0 & 0.9]
+        scale = scale * self.max_std  # num between 0*max_std & 0.9*max_std
+        return tensor + torch.randn(tensor.size()) * scale
+
+    def __repr__(self):
+        return self.__class__.__name__ + "(max_std={0})".format(self.max_std)
+
+
 class INatDataset(ImageFolder):
     def __init__(self, root, train=True, year=2018, transform=None, target_transform=None,
                  category='name', loader=default_loader):
@@ -105,5 +120,7 @@ def build_transform(is_train, args):
         t.append(transforms.CenterCrop(args.input_size))
 
     t.append(transforms.ToTensor())
+    if args.gauss_noise > 0.0:
+        t.append(RandGaussianNoise(max_std=args.gauss_noise))
     t.append(transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD))
     return transforms.Compose(t)
