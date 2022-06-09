@@ -233,6 +233,7 @@ def main(args):
         drop_last=True,
     )
     if args.ThreeAugment:
+        print("New Augs")
         data_loader_train.dataset.transform = new_data_aug_generator(args)
 
     data_loader_val = torch.utils.data.DataLoader(
