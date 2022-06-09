@@ -110,6 +110,8 @@ def build_transform(is_train, args):
             # RandomCrop
             transform.transforms[0] = transforms.RandomCrop(
                 args.input_size, padding=4)
+        if args.gauss_noise > 0.0:
+            transform.transforms.insert(-1, RandGaussianNoise())
         return transform
 
     t = []
