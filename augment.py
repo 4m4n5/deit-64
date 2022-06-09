@@ -111,7 +111,7 @@ def new_data_aug_generator(args = None):
     interpolation='bicubic'
     if remove_random_resized_crop:
         primary_tfl = [
-            transforms.Resize(img_size, interpolation=3),
+            transforms.Resize(img_size, interpolation=transforms.InterpolationMode.BICUBIC),
             transforms.RandomCrop(img_size, padding=4,padding_mode='reflect'),
             transforms.RandomHorizontalFlip()
         ]
