@@ -21,6 +21,21 @@ from PIL import ImageFilter, ImageOps
 import torchvision.transforms.functional as TF
 
 
+## Tensor-transforms
+# Gaussin noise transforms
+class RandGaussianNoise(object):
+    def __init__(self, max_std=2.0):
+        self.max_std = max_std
+
+    def __call__(self, tensor):
+        scale = torch.randint(0, 10, (1,)) / 10  # num between [0 & 0.9]
+        scale = scale * self.max_std  # num between 0*max_std & 0.9*max_std
+        return tensor + torch.randn(tensor.size()) * scale
+
+    def __repr__(self):
+        return self.__class__.__name__ + "(max_std={0})".format(self.max_std)
+
+
 class GaussianBlur(object):
     """
     Apply Gaussian Blur to the PIL image.
@@ -62,15 +77,15 @@ class gray_scale(object):
     def __init__(self, p=0.2):
         self.p = p
         self.transf = transforms.Grayscale(3)
- 
+
     def __call__(self, img):
         if random.random() < self.p:
             return self.transf(img)
         else:
             return img
- 
-    
-    
+
+
+
 class horizontal_flip(object):
     """
     Apply Solarization to the PIL image.
@@ -78,15 +93,15 @@ class horizontal_flip(object):
     def __init__(self, p=0.2,activate_pred=False):
         self.p = p
         self.transf = transforms.RandomHorizontalFlip(p=1.0)
- 
+
     def __call__(self, img):
         if random.random() < self.p:
             return self.transf(img)
         else:
             return img
-        
-    
-    
+
+
+
 def new_data_aug_generator(args = None):
     img_size = args.input_size
     remove_random_resized_crop = args.src
@@ -107,17 +122,29 @@ def new_data_aug_generator(args = None):
             transforms.RandomHorizontalFlip()
         ]
 
-        
+
     secondary_tfl = [transforms.RandomChoice([gray_scale(p=1.0),
                                               Solarization(p=1.0),
                                               GaussianBlur(p=1.0)])]
-   
+
     if args.color_jitter is not None and not args.color_jitter==0:
         secondary_tfl.append(transforms.ColorJitter(args.color_jitter, args.color_jitter, args.color_jitter))
-    final_tfl = [
+
+    if args.gauss_noise > 0.0:
+        print("Adding gaussian noise")
+        final_tfl = [
             transforms.ToTensor(),
+            RandGaussianNoise(max_std=args.gauss_noise),
             transforms.Normalize(
                 mean=torch.tensor(mean),
                 std=torch.tensor(std))
-        ]
+            ]
+    else:
+        final_tfl = [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=torch.tensor(mean),
+                    std=torch.tensor(std))
+            ]
+
     return transforms.Compose(primary_tfl+secondary_tfl+final_tfl)
