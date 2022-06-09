@@ -111,6 +111,7 @@ def build_transform(is_train, args):
             transform.transforms[0] = transforms.RandomCrop(
                 args.input_size, padding=4)
         if args.gauss_noise > 0.0:
+            print("Adding Gauss Noise Aug, scale: ", str(args.gauss_noise))
             transform.transforms.insert(-1, RandGaussianNoise(max_std=args.gauss_noise))
         return transform
 
