@@ -14,16 +14,18 @@ import torch
 ## Tensor-transforms
 # Gaussin noise transforms
 class RandGaussianNoise(object):
-    def __init__(self, max_std=2.0):
-        self.max_std = max_std
+    def __init__(self, mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, max_scale=1.0):
+        self.std = torch.tensor(mean)
+        self.mean = torch.tensor(std)
+        self.max_scale = max_scale
 
     def __call__(self, tensor):
-        scale = torch.randint(0, 10, (1,)) / 10  # num between [0 & 0.9]
-        scale = scale * self.max_std  # num between 0*max_std & 0.9*max_std
-        return tensor + torch.randn(tensor.size()) * scale
+        s = torch.randint(0, 10, (1,)) / 10  # num between [0 & 0.9]
+        scale = s * self.max_scale  # num between 0*max_std & 0.9*max_std
+        return tensor + torch.randn(tensor.size()) * self.std.unsqueeze(-1).unsqueeze(-1) * scale + self.mean.unsqueeze(-1).unsqueeze(-1)
 
     def __repr__(self):
-        return self.__class__.__name__ + "(max_std={0})".format(self.max_std)
+        return self.__class__.__name__ + "(max_std={0})".format(self.max_scale)
 
 
 class INatDataset(ImageFolder):
@@ -112,7 +114,7 @@ def build_transform(is_train, args):
                 args.input_size, padding=4)
         if args.gauss_noise > 0.0:
             print("Adding Gauss Noise Aug, scale: ", str(args.gauss_noise))
-            transform.transforms.insert(-1, RandGaussianNoise(max_std=args.gauss_noise))
+            transform.transforms.insert(len(transform.transforms), RandGaussianNoise(max_scale=args.gauss_noise))
         return transform
 
     t = []
@@ -124,7 +126,7 @@ def build_transform(is_train, args):
         t.append(transforms.CenterCrop(args.input_size))
 
     t.append(transforms.ToTensor())
-    if args.gauss_noise > 0.0:
-        t.append(RandGaussianNoise(max_std=args.gauss_noise))
     t.append(transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD))
+    if args.gauss_noise > 0.0:
+        t.append(RandGaussianNoise(max_scale=args.gauss_noise))
     return transforms.Compose(t)
