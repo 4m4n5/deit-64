@@ -111,7 +111,7 @@ def get_args_parser():
     parser.add_argument('--ThreeAugment', action='store_true') #3augment
 
     parser.add_argument('--src', action='store_true') #simple random crop
-    parser.add_argument('--gauss_noise', type=float, default=2.0, help='Max std for gussian noise injection (default: 0.0)')
+    parser.add_argument('--gauss_noise', type=float, default=0., help='Max std for gussian noise injection (default: 0.0)')
 
     # * Random Erase params
     parser.add_argument('--reprob', type=float, default=0.25, metavar='PCT',
@@ -432,7 +432,7 @@ def main(args):
                     'optimizer': optimizer.state_dict(),
                     'lr_scheduler': lr_scheduler.state_dict(),
                     'epoch': epoch,
-                    # 'model_ema': get_state_dict(model_ema),
+                    'model_ema': get_state_dict(model_ema),
                     'scaler': loss_scaler.state_dict(),
                     'args': args,
                 }, checkpoint_path)
@@ -451,7 +451,7 @@ def main(args):
                         'optimizer': optimizer.state_dict(),
                         'lr_scheduler': lr_scheduler.state_dict(),
                         'epoch': epoch,
-                        # 'model_ema': get_state_dict(model_ema),
+                        'model_ema': get_state_dict(model_ema),
                         'scaler': loss_scaler.state_dict(),
                         'args': args,
                     }, checkpoint_path)
