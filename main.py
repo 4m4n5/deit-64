@@ -61,7 +61,7 @@ def get_args_parser():
                         help='Optimizer Epsilon (default: 1e-8)')
     parser.add_argument('--opt-betas', default=None, type=float, nargs='+', metavar='BETA',
                         help='Optimizer Betas (default: None, use opt default)')
-    parser.add_argument('--clip-grad', type=float, default=None, metavar='NORM',
+    parser.add_argument('--clip-grad', type=float, default=0.01, metavar='NORM',
                         help='Clip gradient norm (default: None, no clipping)')
     parser.add_argument('--momentum', type=float, default=0.9, metavar='M',
                         help='SGD momentum (default: 0.9)')
@@ -433,7 +433,7 @@ def main(args):
                     'optimizer': optimizer.state_dict(),
                     'lr_scheduler': lr_scheduler.state_dict(),
                     'epoch': epoch,
-                    'model_ema': get_state_dict(model_ema),
+                    # 'model_ema': get_state_dict(model_ema),
                     'scaler': loss_scaler.state_dict(),
                     'args': args,
                 }, checkpoint_path)
@@ -452,7 +452,7 @@ def main(args):
                         'optimizer': optimizer.state_dict(),
                         'lr_scheduler': lr_scheduler.state_dict(),
                         'epoch': epoch,
-                        'model_ema': get_state_dict(model_ema),
+                        # 'model_ema': get_state_dict(model_ema),
                         'scaler': loss_scaler.state_dict(),
                         'args': args,
                     }, checkpoint_path)
