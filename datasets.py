@@ -11,10 +11,33 @@ from timm.data import create_transform
 import torch
 
 
+def extract(a, t, x_shape):
+    b, *_ = t.shape
+    out = a.gather(-1, t)
+    return out.reshape(b, *((1,) * (len(x_shape) - 1)))
+
+def cosine_beta_schedule(timesteps, s = 0.008, thres = 0.999):
+    """
+    cosine schedule
+    as proposed in https://openreview.net/forum?id=-NEXDKk8gZ
+    """
+    steps = timesteps + 1
+    x = torch.linspace(0, timesteps, steps, dtype = torch.float64)
+    alphas_cumprod = torch.cos(((x / timesteps) + s) / (1 + s) * torch.pi * 0.5) ** 2
+    alphas_cumprod = alphas_cumprod / alphas_cumprod[0]
+    betas = 1 - (alphas_cumprod[1:] / alphas_cumprod[:-1])
+    return torch.clip(betas, 0, thres)
+
+def linear_beta_schedule(timesteps):
+    scale = 1000 / timesteps
+    beta_start = scale * 0.0001
+    beta_end = scale * 0.02
+    return torch.linspace(beta_start, beta_end, timesteps, dtype = torch.float64)
+
 ## Tensor-transforms
 # Gaussin noise transforms
 class RandGaussianNoise(object):
-    def __init__(self, mean=IMAGENET_DEFAULT_MEAN, std=IMAGENET_DEFAULT_STD, max_scale=1.0):
+    def __init__(self, mean=IMAGENET_MEAN, std=IMAGENET_STD, max_scale=1.0):
         self.std = torch.tensor(mean)
         self.mean = torch.tensor(std)
         self.max_scale = max_scale
@@ -22,10 +45,43 @@ class RandGaussianNoise(object):
     def __call__(self, tensor):
         s = torch.randint(0, 10, (1,)) / 10  # num between [0 & 0.9]
         scale = s * self.max_scale  # num between 0*max_std & 0.9*max_std
-        return tensor + torch.randn(tensor.size()) * self.std.unsqueeze(-1).unsqueeze(-1) * scale + self.mean.unsqueeze(-1).unsqueeze(-1)
+        return (tensor + torch.randn(tensor.size()) * self.std.unsqueeze(-1).unsqueeze(-1) * scale + self.mean.unsqueeze(-1).unsqueeze(-1))/2.0
 
     def __repr__(self):
-        return self.__class__.__name__ + "(max_std={0})".format(self.max_scale)
+        return self.__class__.__name__ + "(max_scale={0})".format(self.max_scale)
+
+
+class TimestepNoise(object):
+    def __init__(self, timesteps=1000, noise_schedule="cosine"):
+        if noise_schedule == "cosine":
+            self.betas = cosine_beta_schedule(timesteps).to(torch.float32)
+        elif noise_schedule == "linear":
+            self.betas = linear_beta_schedule(timesteps).to(torch.float32)
+        else:
+            raise NotImplementedError()
+
+        self.alphas = (1. - self.betas).to(torch.float32)
+        self.alphas_cumprod = torch.cumprod(self.alphas, axis = 0).to(torch.float32)
+
+        timesteps, = self.betas.shape
+        self.num_timesteps = int(timesteps)
+
+        self.sqrt_alphas_cumprod = torch.sqrt(self.alphas_cumprod).to(torch.float32)
+        self.sqrt_one_minus_alphas_cumprod = torch.sqrt(1. - self.alphas_cumprod).to(torch.float32)
+
+    def __call__(self, tensor):
+        noise = torch.randn_like(tensor)
+        t = torch.randint(0, self.num_timesteps, (tensor.shape[0],),)
+
+        noised = (
+            extract(self.sqrt_alphas_cumprod, t, tensor.shape) * tensor +
+            extract(self.sqrt_one_minus_alphas_cumprod, t, tensor.shape) * noise
+        )
+
+        return noised
+
+    def __repr__(self):
+        return self.__class__.__name__
 
 
 class INatDataset(ImageFolder):

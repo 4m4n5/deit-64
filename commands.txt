@@ -1,1 +1,1 @@
-python -m torch.distributed.launch --nproc_per_node=16 --use_env main.py --model deit_base_patch4_64 --batch-size 200 --data-path /export/share/datasets/vision/imagenet/ --output_dir /export/home/saves/deit_64_ns0/ --gauss_noise 0 --no-model-ema
+python -m torch.distributed.launch --nproc_per_node=16 --use_env main.py --model deit_base_patch4_64 --batch-size 128 --data-path /export/share/datasets/vision/imagenet/ --output_dir /export/home/saves/deit_64_ns1/ --noise_schedule 1.0 --noise_timesteps 1000
