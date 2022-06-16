@@ -50,7 +50,7 @@ def get_args_parser():
 
     parser.add_argument('--model-ema', action='store_true')
     parser.add_argument('--no-model-ema', action='store_false', dest='model_ema')
-    parser.set_defaults(model_ema=True)
+    parser.set_defaults(model_ema=False)
     parser.add_argument('--model-ema-decay', type=float, default=0.99996, help='')
     parser.add_argument('--model-ema-force-cpu', action='store_true', default=False, help='')
 
@@ -193,9 +193,9 @@ def main(args):
     device = torch.device(args.device)
 
     # fix the seed for reproducibility
-    seed = args.seed + utils.get_rank()
-    torch.manual_seed(seed)
-    np.random.seed(seed)
+    # seed = args.seed + utils.get_rank()
+    # torch.manual_seed(seed)
+    # np.random.seed(seed)
     # random.seed(seed)
 
     cudnn.benchmark = True
@@ -432,7 +432,6 @@ def main(args):
                     'optimizer': optimizer.state_dict(),
                     'lr_scheduler': lr_scheduler.state_dict(),
                     'epoch': epoch,
-                    'model_ema': get_state_dict(model_ema),
                     'scaler': loss_scaler.state_dict(),
                     'args': args,
                 }, checkpoint_path)
@@ -451,7 +450,6 @@ def main(args):
                         'optimizer': optimizer.state_dict(),
                         'lr_scheduler': lr_scheduler.state_dict(),
                         'epoch': epoch,
-                        'model_ema': get_state_dict(model_ema),
                         'scaler': loss_scaler.state_dict(),
                         'args': args,
                     }, checkpoint_path)

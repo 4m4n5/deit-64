@@ -22,7 +22,7 @@ class RandGaussianNoise(object):
     def __call__(self, tensor):
         s = torch.randint(0, 10, (1,)) / 10  # num between [0 & 0.9]
         scale = s * self.max_scale  # num between 0*max_std & 0.9*max_std
-        return tensor + torch.randn(tensor.size()) * self.std.unsqueeze(-1).unsqueeze(-1) * scale + self.mean.unsqueeze(-1).unsqueeze(-1)
+        return (tensor + torch.randn(tensor.size()) * self.std.unsqueeze(-1).unsqueeze(-1) * scale + self.mean.unsqueeze(-1).unsqueeze(-1))/2.0
 
     def __repr__(self):
         return self.__class__.__name__ + "(max_std={0})".format(self.max_scale)
