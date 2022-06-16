@@ -168,9 +168,9 @@ def build_transform(is_train, args):
             # RandomCrop
             transform.transforms[0] = transforms.RandomCrop(
                 args.input_size, padding=4)
-        if args.gauss_noise > 0.0:
+        if args.noise_timesteps > 0:
             print("Adding Gauss Noise Aug, scale: ", str(args.gauss_noise))
-            transform.transforms.insert(len(transform.transforms), RandGaussianNoise(max_scale=args.gauss_noise))
+            transform.transforms.insert(len(transform.transforms), TimestepNoise(timesteps=args.noise_timesteps, noise_schedule=args.noise_schedule))
         return transform
 
     t = []
@@ -183,6 +183,6 @@ def build_transform(is_train, args):
 
     t.append(transforms.ToTensor())
     t.append(transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD))
-    if args.gauss_noise > 0.0:
-        t.append(RandGaussianNoise(max_scale=args.gauss_noise))
+    if args.noise_timesteps > 0:
+        t.append(TimestepNoise(timesteps=args.noise_timesteps, noise_schedule=args.noise_schedule))
     return transforms.Compose(t)
