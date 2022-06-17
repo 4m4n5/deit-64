@@ -113,6 +113,7 @@ def get_args_parser():
     parser.add_argument('--src', action='store_true') #simple random crop
     parser.add_argument('--noise_timesteps', type=int, default=1000, help='Timesteps for cosine noise schedule')
     parser.add_argument('--noise_schedule', type=str, default='cosine')
+    parser.add_argument('--noise_percentage', type=int, default=90, help='%age data to apply noise to')
 
     # * Random Erase params
     parser.add_argument('--reprob', type=float, default=0.25, metavar='PCT',
