@@ -170,6 +170,6 @@ def build_transform(is_train, args):
 
     t.append(transforms.ToTensor())
     t.append(transforms.Normalize(IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD))
-    if args.noise_timesteps > 0:
-        t.append(TimestepNoise(timesteps=args.noise_timesteps, noise_schedule=args.noise_schedule))
+    # if args.noise_timesteps > 0:
+    #     t.append(TimestepNoise(timesteps=args.noise_timesteps, noise_schedule=args.noise_schedule))
     return transforms.Compose(t)
