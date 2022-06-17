@@ -154,7 +154,7 @@ def build_transform(is_train, args):
             transform.transforms[0] = transforms.RandomCrop(
                 args.input_size, padding=4)
         if args.noise_timesteps > 0:
-            print("Adding Gauss Noise Aug, scale: ", str(args.gauss_noise))
+            print("Adding timestep based gaussian noise")
             transform.transforms.insert(len(transform.transforms), TimestepNoise(timesteps=args.noise_timesteps, noise_schedule=args.noise_schedule))
         return transform
 
